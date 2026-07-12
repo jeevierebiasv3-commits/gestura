@@ -1,0 +1,26 @@
+2026-07-11 22:11:04.009120: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING:tensorflow:From keras\src\losses.py:2976: The name tf.losses.sparse_softmax_cross_entropy is deprecated. Please use tf.compat.v1.losses.sparse_softmax_cross_entropy instead.
+
+Traceback (most recent call last):
+  File "desktop_app.py", line 76, in <module>
+  File "desktop_app.py", line 59, in main
+  File "pyimod02_importers.py", line 457, in exec_module
+  File "app_sequence.py", line 34, in <module>
+  File "pyimod02_importers.py", line 457, in exec_module
+  File "live_sequence.py", line 36, in <module>
+  File "pyimod02_importers.py", line 457, in exec_module
+  File "mediapipe\__init__.py", line 16, in <module>
+    import mediapipe.python.solutions as solutions 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pyimod02_importers.py", line 457, in exec_module
+  File "mediapipe\python\solutions\__init__.py", line 17, in <module>
+    import mediapipe.python.solutions.drawing_styles
+  File "pyimod02_importers.py", line 457, in exec_module
+  File "mediapipe\python\solutions\drawing_styles.py", line 20, in <module>
+    from mediapipe.python.solutions.drawing_utils import DrawingSpec
+  File "pyimod02_importers.py", line 457, in exec_module
+  File "mediapipe\python\solutions\drawing_utils.py", line 21, in <module>
+    import matplotlib.pyplot as plt
+ModuleNotFoundError: No module named 'matplotlib'
+[PYI-7256:ERROR] Failed to execute script 'desktop_app' due to unhandled exception!
+[Gestura] loading model… (first launch takes a few seconds)

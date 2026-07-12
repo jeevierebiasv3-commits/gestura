@@ -1,0 +1,149 @@
+{
+  "bigrams": {
+    "hi": {
+      "Hello": 6,
+      "Hi": 6,
+      "Okay": 2,
+      "I am thirsty": 1,
+      "No": 2,
+      "Well done": 4
+    },
+    "well done": {
+      "All done": 3,
+      "Hello": 2,
+      "How are you?": 1,
+      "Excuse me": 1,
+      "Hi": 1,
+      "Good Morning": 1
+    },
+    "all done": {
+      "Yes": 1,
+      "Hi": 1,
+      "How are you?": 1,
+      "All done": 1,
+      "Well done": 1,
+      "I": 1
+    },
+    "yes": {
+      "I love you": 1,
+      "Yes": 4,
+      "See you later": 3,
+      "No": 1
+    },
+    "good morning": {
+      "Congratulations": 1,
+      "Hi": 1,
+      "No": 1,
+      "How can I help you?": 1,
+      "Thank you": 1
+    },
+    "congratulations": {
+      "Hello": 1,
+      "Congratulations": 1,
+      "Nice to meet you": 1,
+      "How can I help you?": 1,
+      "Thank you": 2,
+      "Excuse me": 2
+    },
+    "hello": {
+      "Good Afternoon": 1,
+      "Nice to meet you": 1,
+      "Hi": 2,
+      "I love you": 2,
+      "All done": 1,
+      "Hello": 2,
+      "Congratulations": 2
+    },
+    "good afternoon": {
+      "Good Morning": 3
+    },
+    "okay": {
+      "Okay": 2,
+      "Hi": 1,
+      "Excuse me": 1
+    },
+    "excuse me": {
+      "Well done": 1,
+      "What time is it?": 5,
+      "Excuse me": 5,
+      "How are you?": 1
+    },
+    "nice to meet you": {
+      "Hello": 1,
+      "Nice to meet you": 3,
+      "No": 1
+    },
+    "i am thirsty": {
+      "I am thirsty": 2,
+      "I am hungry": 1,
+      "Sorry": 1
+    },
+    "i am hungry": {
+      "How are you": 1,
+      "I am thirsty": 1,
+      "Sorry": 3,
+      "I": 1
+    },
+    "i love you": {
+      "How can I help you?": 1,
+      "Good Afternoon": 1
+    },
+    "how can i help you?": {
+      "How can I help you?": 4,
+      "All done": 1,
+      "What time is it?": 1,
+      "No": 1,
+      "How are you?": 2,
+      "Yes": 1
+    },
+    "how are you?": {
+      "Yes": 1,
+      "How are you?": 6,
+      "How can I help you?": 2
+    },
+    "see you later": {
+      "Yes": 2,
+      "Name": 1,
+      "All done": 1
+    },
+    "name": {
+      "Name": 1,
+      "Take care": 4,
+      "Hi": 1
+    },
+    "take care": {
+      "Excuse me": 1,
+      "Name": 2,
+      "Take care": 1,
+      "What time is it?": 1
+    },
+    "what time is it?": {
+      "Excuse me": 3,
+      "What time is it?": 5,
+      "How can I help you?": 1,
+      "Congratulations": 1,
+      "How are you?": 1
+    },
+    "no": {
+      "Hi": 2,
+      "Yes": 1,
+      "Okay": 1
+    },
+    "thank you": {
+      "Congratulations": 2,
+      "Hello": 1,
+      "How are you?": 1
+    },
+    "i": {
+      "I": 1,
+      "Sorry": 3
+    },
+    "sorry": {
+      "Sorry": 12,
+      "I": 1,
+      "I am hungry": 4,
+      "I am thirsty": 1,
+      "I love you": 1
+    }
+  }
+}

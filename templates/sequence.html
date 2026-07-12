@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestura — Motion Sign Translator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='sequence.css') }}" />
+  <!-- PWA: installable app shell -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#16d9c0" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}" />
+</head>
+<body>
+  <!-- reusable inline icon sprite (stroke inherits currentColor) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <g id="i-hand" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 11V5.5a1.5 1.5 0 0 1 3 0V10" />
+        <path d="M9 10V4a1.5 1.5 0 0 1 3 0v6" />
+        <path d="M12 10V4.5a1.5 1.5 0 0 1 3 0V11" />
+        <path d="M15 11V7a1.5 1.5 0 0 1 3 0v6a6 6 0 0 1-6 6h-1.5a5 5 0 0 1-4-2l-2.4-3.2a1.5 1.5 0 0 1 2.3-1.9L6 12" />
+      </g>
+      <g id="i-mic" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2" width="6" height="12" rx="3" />
+        <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+      </g>
+      <g id="i-send" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 12h13M11 6l6.5 6-6.5 6" />
+      </g>
+      <g id="i-sparkle" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3.5l1.7 4.8L18.5 10l-4.8 1.7L12 16.5l-1.7-4.8L5.5 10l4.8-1.7zM18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
+      </g>
+      <g id="i-volume" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9v6h3.5L13 20V4L7.5 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8 8 0 0 1 0 12" />
+      </g>
+      <g id="i-mute" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9v6h3.5L13 20V4L7.5 9zM17 9.5l4 5M21 9.5l-4 5" />
+      </g>
+      <g id="i-x" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </g>
+      <g id="i-search" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="6.5" /><path d="M20 20l-3.6-3.6" />
+      </g>
+      <g id="i-copy" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="11" height="11" rx="2.5" /><path d="M5 15V5.5A1.5 1.5 0 0 1 6.5 4H15" />
+      </g>
+      <g id="i-share" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" />
+        <path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6" />
+      </g>
+      <g id="i-download" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14" />
+      </g>
+      <g id="i-chat" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+      </g>
+      <g id="i-fullscreen" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15" />
+      </g>
+      <g id="i-pip" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="14" rx="2.5" />
+        <rect x="12" y="11" width="7" height="6" rx="1.2" fill="currentColor" stroke="none" />
+      </g>
+      <g id="i-camera" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h1.9l1.1-1.7A1 1 0 0 1 9.4 5h5.2a1 1 0 0 1 .9.5L16.6 7h1.9A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z" />
+        <circle cx="12" cy="12.5" r="3.2" />
+      </g>
+      <g id="i-record" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none" />
+      </g>
+      <g id="i-stop" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor" stroke="none" />
+      </g>
+    </defs>
+  </svg>
+
+  <div class="app">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-text">Ges<span class="logo-highlight">tura</span></span>
+        <span class="logo-mode">MOTION</span>
+      </div>
+      <div class="header-right">
+        <div class="btn-group">
+          <button class="ctrl-btn ctrl-btn-primary" id="sendBtn" title="Send the signed sentence to the conversation">
+            <svg class="btn-ico" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-send" /></svg>
+            <span class="btn-label">Send</span>
+          </button>
+          <button class="ctrl-btn" id="micBtn" title="Speak a reply — turns your voice into text">
+            <svg class="btn-ico mic-icon" id="micIcon" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-mic" /></svg>
+            <span class="btn-label" id="micLabel">Speak</span>
+          </button>
+          <button class="ctrl-btn" id="polishBtn" title="Polish signs into a natural sentence">
+            <svg class="btn-ico polish-ico" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-sparkle" /></svg>
+            <span class="btn-label" id="polishLabel">Polish</span>
+          </button>
+        </div>
+
+        <div class="btn-group">
+          <button class="ctrl-btn ctrl-btn-icon" id="voiceBtn" title="Toggle speech">
+            <svg class="btn-ico voice-icon" id="voiceIcon" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-volume" /></svg>
+            <span class="btn-label" id="voiceLabel">Voice On</span>
+          </button>
+          <button class="ctrl-btn ctrl-btn-icon" id="clearBtn" title="Clear the current sentence">
+            <svg class="btn-ico" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-x" /></svg>
+            <span class="btn-label">Clear</span>
+          </button>
+          <button class="ctrl-btn ctrl-btn-icon" id="debugBtn" title="Show why a sign did or didn't translate">
+            <svg class="btn-ico" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-search" /></svg>
+            <span class="btn-label">Debug</span>
+          </button>
+          <button class="ctrl-btn ctrl-btn-icon" id="practiceBtn" title="Practice mode — the app names a sign and scores you">
+            <svg class="btn-ico" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-hand" /></svg>
+            <span class="btn-label">Practice</span>
+          </button>
+          <div class="a11y-wrap">
+            <button class="ctrl-btn ctrl-btn-icon" id="a11yBtn" title="Accessibility settings" aria-haspopup="true" aria-expanded="false">
+              <span class="a11y-glyph">Aa</span>
+            </button>
+            <div class="a11y-menu" id="a11yMenu" hidden>
+              <div class="a11y-title">Accessibility</div>
+              <label class="a11y-row">
+                <span>Large captions</span>
+                <input type="checkbox" id="a11yLargeCap" />
+              </label>
+              <label class="a11y-row">
+                <span>High contrast</span>
+                <input type="checkbox" id="a11yContrast" />
+              </label>
+              <div class="a11y-row a11y-col">
+                <span>Caption size <b id="a11ySizeVal">100%</b></span>
+                <input type="range" id="a11ySize" min="80" max="180" step="10" value="100" />
+              </div>
+              <button class="a11y-reset" id="a11yReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <span class="live-badge">
+          <span class="live-dot"></span>
+          LIVE
+        </span>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="feed-section">
+        <div class="feed-container" id="feedContainer">
+          <img src="{{ url_for('video_feed') }}" class="feed" id="videoFeed" alt="Camera feed" />
+
+          <!-- recording ring: pulses around the feed while capturing a sign -->
+          <div class="rec-ring" id="recRing" aria-hidden="true"></div>
+
+          <!-- motion "listening" meter: fills toward the start-a-sign threshold -->
+          <div class="motion-meter" id="motionMeter" aria-hidden="true">
+            <div class="motion-fill" id="motionFill"></div>
+            <span class="motion-mark" id="motionMark"></span>
+          </div>
+
+          <!-- framing guide + coaching (shown when idle and no hands are seen) -->
+          <div class="framing-guide" id="framingGuide" hidden>
+            <span class="frame-corner tl"></span>
+            <span class="frame-corner tr"></span>
+            <span class="frame-corner bl"></span>
+            <span class="frame-corner br"></span>
+            <span class="frame-coach" id="frameCoach">Center your hands in the frame</span>
+          </div>
+
+          <!-- top-left live status -->
+          <div class="seg-status" id="segStatus">
+            <span class="seg-ring" id="segRing"></span>
+            <span id="segText">Ready — start signing</span>
+          </div>
+
+          <!-- diagnostics: last classification result (toggle with Debug) -->
+          <div class="debug-panel" id="debugPanel" hidden>
+            <div class="debug-verdict" id="debugVerdict">—</div>
+            <div class="debug-row">
+              <span class="debug-key">guess</span>
+              <span class="debug-val" id="debugTop">—</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-key">confidence</span>
+              <span class="debug-val" id="debugConf">—</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-key">margin</span>
+              <span class="debug-val" id="debugMargin">—</span>
+            </div>
+            <div class="debug-hint" id="debugHint">Sign, then read the numbers here.</div>
+          </div>
+
+          <!-- big caption of the hearing person's speech (for the deaf user) -->
+          <div class="speech-caption" id="speechCaption" hidden>
+            <span class="speech-caption-label">
+              <svg class="cap-ico" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-mic" /></svg>
+              They said
+            </span>
+            <span class="speech-caption-text" id="speechCaptionText"></span>
+          </div>
+
+          <!-- bottom subtitle: the running sentence -->
+          <div class="subtitle" id="subtitle">
+            <div class="subtitle-inner" id="subtitleInner">
+              <span class="subtitle-hint">Sign something — your translation appears here</span>
+            </div>
+            <!-- next-sign autocomplete chips (scaffold) -->
+            <div class="suggestions" id="suggestions" hidden></div>
+          </div>
+
+          <div class="feed-status" id="feedStatus">
+            <div class="status-ring"></div>
+            <span>Waiting for camera...</span>
+          </div>
+
+          <!-- bottom-left HUD: live processing rate + hands seen -->
+          <div class="cam-hud" id="camHud" hidden>
+            <span class="hud-fps"><b id="hudFps">–</b> fps</span>
+            <span class="hud-sep">·</span>
+            <span class="hud-hands"><b id="hudHands">0</b> hands</span>
+          </div>
+
+          <!-- recording indicator (top-center while a clip is being captured) -->
+          <div class="rec-indicator" id="recIndicator" hidden>
+            <span class="rec-dot"></span>
+            REC <span id="recTime">0:00</span>
+          </div>
+
+          <!-- camera controls: snapshot, clip record, PiP, fullscreen -->
+          <div class="cam-tools" id="camTools">
+            <button class="cam-btn" id="snapBtn" title="Save a snapshot (P)">
+              <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-camera" /></svg>
+            </button>
+            <button class="cam-btn" id="recBtn" title="Record a clip">
+              <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-record" /></svg>
+            </button>
+            <button class="cam-btn" id="pipBtn" title="Picture-in-Picture" hidden>
+              <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-pip" /></svg>
+            </button>
+            <button class="cam-btn" id="fsBtn" title="Fullscreen (F)">
+              <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-fullscreen" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- LLM-polished natural sentence (shown after pressing Polish) -->
+        <div class="polished" id="polishedBar" hidden>
+          <span class="polished-label">
+            <svg class="cap-ico" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-sparkle" /></svg>
+            Polished
+          </span>
+          <span class="polished-text" id="polishedText"></span>
+          <button class="polished-speak" id="polishedSpeak" title="Speak sentence" hidden>
+            <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-volume" /></svg>
+          </button>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <!-- practice/learn mode: premium card in the sidebar so the camera view
+             stays fully clear. Named target sign + live scoring. -->
+        <div class="practice-card" id="practicePanel" hidden>
+          <div class="practice-glow" aria-hidden="true"></div>
+          <div class="practice-card-head">
+            <span class="practice-badge">
+              <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-hand" /></svg>
+              Practice
+            </span>
+            <button class="practice-exit" id="practiceExitBtn" title="Exit practice">
+              <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-x" /></svg>
+            </button>
+          </div>
+
+          <div class="practice-prompt">
+            <span class="practice-cue">Sign this</span>
+            <span class="practice-target" id="practiceTarget">—</span>
+          </div>
+
+          <div class="practice-verdict" id="practiceVerdict">
+            <span class="practice-verdict-dot"></span>
+            <span id="practiceVerdictText">Perform the sign above.</span>
+          </div>
+
+          <div class="practice-stats">
+            <div class="pstat">
+              <b id="practiceStreak">0</b>
+              <span>Streak</span>
+            </div>
+            <div class="pstat">
+              <b id="practiceBest">0</b>
+              <span>Best</span>
+            </div>
+            <div class="pstat">
+              <b id="practiceAcc">—</b>
+              <span>Accuracy</span>
+            </div>
+          </div>
+
+          <div class="practice-actions">
+            <button class="practice-btn" id="practiceSkipBtn">Skip</button>
+            <button class="practice-btn practice-btn-primary" id="practiceNextBtn">
+              Next word
+              <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-send" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="convo-panel">
+          <h2 class="panel-title">
+            <svg width="17" height="17" viewBox="0 0 24 24" stroke="currentColor"><use href="#i-chat" /></svg>
+            Conversation
+            <div class="convo-actions">
+              <button class="convo-act" id="convoCopyBtn" title="Copy transcript">
+                <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-copy" /></svg>
+              </button>
+              <button class="convo-act" id="convoShareBtn" title="Share transcript">
+                <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-share" /></svg>
+              </button>
+              <button class="convo-act" id="convoExportBtn" title="Export as .txt">
+                <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-download" /></svg>
+              </button>
+              <button class="convo-act convo-clear" id="convoClearBtn" title="Clear conversation">
+                <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-x" /></svg>
+              </button>
+            </div>
+          </h2>
+
+          <div class="convo-scroll" id="convoScroll">
+            <!-- empty state doubles as the vocabulary reference -->
+            <div class="convo-empty" id="convoEmpty">
+              <div class="convo-empty-mark">
+                <svg viewBox="0 0 24 24" stroke="currentColor"><use href="#i-hand" /></svg>
+              </div>
+              <p class="convo-empty-title">No messages yet</p>
+              <p class="convo-empty-sub">Sign, then press <b>Send</b> — or press <b>Speak</b> to reply by voice.</p>
+              <div class="convo-vocab">
+                <span class="convo-vocab-label">Signs you can use</span>
+                <div class="convo-vocab-chips">
+                  {% for gesture in gestures %}
+                  <span class="vocab-chip">{{ gesture }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <div class="convo-messages" id="convoMessages"></div>
+          </div>
+
+          <!-- live interim speech while the mic is listening -->
+          <div class="convo-interim" id="convoInterim" hidden>
+            <span class="convo-interim-dot"></span>
+            <span id="convoInterimText">Listening…</span>
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <div class="stat">
+            <span class="stat-label">Status</span>
+            <span class="stat-value" id="stateDisplay">Ready</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Hands</span>
+            <span class="stat-value" id="handsDisplay">—</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- full label set for practice mode; the client filters out reject labels -->
+  <script id="vocabData" type="application/json">{{ gestures | tojson }}</script>
+  <script src="{{ url_for('static', filename='sequence.js') }}"></script>
+</body>
+</html>

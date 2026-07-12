@@ -1,0 +1,9 @@
+tensorflow==2.15.0
+mediapipe==0.10.14
+protobuf==4.25.3
+numpy==1.26.4
+opencv-python==4.11.0.86
+pandas==2.2.3
+scikit-learn==1.5.2
+pyttsx3==2.90
+flask==3.0.3

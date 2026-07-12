@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Translator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 11V5.5a1.5 1.5 0 0 1 3 0V10" />
+            <path d="M9 10V4a1.5 1.5 0 0 1 3 0v6" />
+            <path d="M12 10V4.5a1.5 1.5 0 0 1 3 0V11" />
+            <path d="M15 11V7a1.5 1.5 0 0 1 3 0v6a6 6 0 0 1-6 6h-1.5a5 5 0 0 1-4-2l-2.4-3.2a1.5 1.5 0 0 1 2.3-1.9L6 12" />
+          </svg>
+        </span>
+        <span class="logo-text">Sign<span class="logo-highlight">Translate</span></span>
+      </div>
+      <span class="live-badge">
+        <span class="live-dot"></span>
+        LIVE
+      </span>
+    </header>
+
+    <main class="main">
+      <div class="feed-section">
+        <div class="feed-container" id="feedContainer">
+          <img src="{{ url_for('video_feed') }}" class="feed" id="videoFeed" alt="Camera feed" />
+          <div class="feed-overlay">
+            <div class="prediction-box" id="predictionBox">
+              <span class="prediction-label">PREDICTION</span>
+              <span class="prediction-text" id="predictionText">—</span>
+              <div class="confidence-bar" id="confidenceBar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+              </div>
+              <span class="confidence-value" id="confidenceValue">0%</span>
+            </div>
+          </div>
+          <div class="feed-status" id="feedStatus">
+            <div class="status-ring"></div>
+            <span>Waiting for camera...</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="gestures-panel">
+          <h2 class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11a9 9 0 0 1 9 9" />
+              <path d="M4 4a16 16 0 0 1 16 16" />
+              <circle cx="5" cy="19" r="1" />
+            </svg>
+            Gestures
+            <span class="gesture-count">{{ gestures|length }}</span>
+          </h2>
+          <div class="gestures-grid">
+            {% for gesture in gestures %}
+            <div class="gesture-chip" data-gesture="{{ gesture }}">
+              <span class="gesture-icon"></span>
+              <span class="gesture-name">{{ gesture }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="stats-panel">
+          <div class="stat">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value" id="fpsDisplay">—</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Hands</span>
+            <span class="stat-value" id="handsDisplay">—</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

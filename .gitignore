@@ -1,0 +1,25 @@
+# Python virtual environment (recreate with: python -m venv venv && pip install -r requirements.txt)
+venv/
+
+# Build / packaging output
+build/
+dist/
+*.spec.bak
+build_log.txt
+__pycache__/
+*.pyc
+
+# Release artifacts and archives (too large for git)
+Gestura-windows.zip
+ProjectS.rar
+*.zip
+*.rar
+
+# Playwright scratch
+.playwright-cli/
+
+# Editor / OS cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
