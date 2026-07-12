@@ -1,97 +1,135 @@
-# Sign Sentence Translator
+# Gestura — Webcam Sign-Language Translator
 
-Recognizes whole-sentence hand gestures (both hands) from your laptop's
-webcam using MediaPipe for hand tracking and a neural network for
-classification — no letter-by-letter spelling involved.
+Gestura turns hand gestures from your laptop's webcam into a running,
+spoken sentence. [MediaPipe](https://developers.google.com/mediapipe) tracks
+both hands, a neural network classifies each sign, and recognized signs are
+assembled into text that is shown on screen and read aloud — no
+letter-by-letter spelling involved.
 
-There are two pipelines:
+There are two independent pipelines:
 
-- **Stage 1 — Static poses:** classifies a single held hand shape per frame.
-  Good for signs that are a fixed pose.
-- **Stage 2 — Motion signs:** classifies short clips with a GRU sequence model,
-  so movement-based signs (a wave for "Hello", hand-from-chin for "Thank you",
-  a finger-wag for "No") are recognized properly.
+- **Stage 1 — Static poses** (`model.h5` / `labels.json`): a feedforward network
+  classifies one held hand shape per frame. Good for signs that are a fixed pose.
+- **Stage 2 — Motion signs** (`seq_model.h5` / `seq_labels.json`): a GRU sequence
+  model classifies short, variable-length clips, so movement-based signs (a wave
+  for "Hello", hand-from-chin for "Thank you") are recognized properly.
+  **Stage 2 is the current focus** — the web app, LLM sentence polishing, and
+  next-sign autocomplete are all built on it.
 
-**Accuracy note:** landmarks are **normalized** (each hand is re-centered on the
-wrist and scaled by hand size) before the model sees them, and include depth
-(z). This makes recognition robust to *where* your hand is in the frame and
-*how far* it is from the camera — the main cause of earlier misreads. All
-scripts share this logic via `hand_features.py`.
+**Why it's accurate:** landmarks are **normalized** (each hand re-centered on the
+wrist and scaled by hand size) and include depth (z) before the model sees them,
+so recognition is robust to *where* your hand is in the frame and *how far* it is
+from the camera. All scripts share this logic via `hand_features.py`, so there's
+no train/serve skew.
 
 ## Setup
 
-1. Install Python 3.9–3.11 (TensorFlow doesn't yet support the very latest
-   Python versions — check before installing if unsure).
-2. Open a terminal in this folder and run:
+1. Install **Python 3.9–3.11** (TensorFlow doesn't support the very latest Python
+   versions yet).
+2. Create a virtual environment and install dependencies:
 
-   ```
+   ```bash
+   python -m venv venv
+   # Windows (PowerShell):
+   venv\Scripts\Activate.ps1
+   # macOS / Linux:
+   source venv/bin/activate
+
    pip install -r requirements.txt
    ```
 
-   This installs OpenCV (webcam access), MediaPipe (hand tracking),
-   TensorFlow (the ML model), and a few helper libraries.
+   This installs OpenCV (webcam), MediaPipe (hand tracking), TensorFlow (the
+   models), Flask (web app), and helpers.
 
-## Usage — 3 steps
+> The committed models (`model.h5`, `seq_model.h5`) and datasets (`data.csv`,
+> `sequences/`) let you run the live translator immediately without collecting or
+> training anything first.
 
-### Step 1: Collect training data
-```
-python collect_data.py
-```
-- Type a label like `I_AM_HUNGRY` (no spaces — use underscores).
-- A webcam window opens. Make the gesture pose with your hand(s).
-- Press **SPACE** ~30-50 times to capture samples, slightly shifting your
-  hand position/angle/distance from camera between captures.
-- Press **n** to move to the next gesture and type a new label.
-- Press **q** when done with all gestures. This creates `data.csv`.
+## Usage
 
-**Important:** Record at least 2 different gestures so the model has
-something to distinguish between. More samples per gesture (30-50+) and
-more variation (angle, distance, slight rotation) = better accuracy.
+Each stage has three scripts that run in order: **collect → train → run live.**
 
-### Step 2: Train the model
-```
-python train_model.py
-```
-This reads `data.csv`, trains a neural network, prints test accuracy, and
-saves `model.h5` (the trained model) and `labels.json` (label lookup).
+### Stage 2 — Motion signs (the active pipeline)
 
-If accuracy is low, usually it means: too few samples, gestures too similar
-to each other, or not enough variation during collection. Just go back to
-Step 1 and add more/better data, then retrain.
+```bash
+python collect_sequences.py      # record clips  -> sequences/<LABEL>/*.npy
+python train_sequence_model.py   # -> seq_model.h5 + seq_labels.json
+python live_sequence.py          # desktop OpenCV window
+python app_sequence.py           # web app -> open http://localhost:5000
+```
 
-### Step 3: Run the live translator
+### Stage 1 — Static poses
+
+```bash
+python collect_data.py    # append rows -> data.csv
+python train_model.py     # -> model.h5 + labels.json
+python live_translate.py  # desktop window   (app.py = web version)
 ```
-python live_translate.py
-```
-Opens your webcam, tracks your hands, and displays the predicted sentence
-as text on screen in real time. Press **q** to quit.
+
+> **Retrain whenever the label set changes.** The live scripts don't assert on
+> shape, so a model whose output width no longer matches its `*_labels.json` will
+> mispredict silently. After collecting new data, always retrain before running
+> live.
+
+## The web app
+
+`app_sequence.py` is a Flask + PWA front end for Stage 2. A background thread owns
+the webcam and runs the *same* segmentation and classification as
+`live_sequence.py`, so desktop and web never drift apart. Features:
+
+- Live annotated video stream and a growing sentence, updated over Server-Sent
+  Events.
+- **Text-to-speech** in the browser (Web Speech API — offline, client-side).
+- A **"why" panel** that explains when and why a gesture was rejected.
+- **Practice mode**, **next-sign autocomplete**, and optional **LLM polishing**.
+- Installable as a Progressive Web App (service worker + manifest).
+
+## Optional subsystems (degrade gracefully)
+
+These enhance the translator but never crash it when absent:
+
+- **LLM polish** (`llm.py`) — cleans up the raw sign sequence into a fluent
+  sentence via a local [Ollama](https://ollama.com) server (`llama3.2`,
+  override with `OLLAMA_HOST` / `OLLAMA_MODEL`). If Ollama isn't running it's
+  simply skipped. Quick check without a webcam: `python llm.py Hi Good Morning`.
+- **Autocomplete** (`suggest.py`) — a learned bigram model that suggests the
+  likely next sign and re-ranks predictions with a small context prior.
+- **TTS** — browser-side on the web app; `pyttsx3` on desktop (no-op if not
+  installed).
 
 ## How it works under the hood
 
-- MediaPipe detects up to 2 hands and gives 21 (x, y) landmark points per
-  hand — fingertips, knuckles, wrist, etc.
-- We flatten both hands into one list of 84 numbers per frame (a missing
-  hand is filled with zeros).
-- `collect_data.py` saves these number-lists with a label you choose.
-- `train_model.py` trains a small feedforward neural network
-  (84 numbers in → gesture label out).
-- `live_translate.py` runs that trained model on every webcam frame and
-  smooths predictions over several frames so the displayed text doesn't
-  flicker between guesses.
+- MediaPipe detects up to 2 hands and returns 21 (x, y, z) landmarks per hand.
+- **Feature vector = 126 floats**: `[Left hand 63][Right hand 63]`, each hand =
+  21 landmarks × (x, y, z). A missing hand is that hand's 63 slots zeroed.
+- Stage 1 feeds this 126-vector into a feedforward net (pose → label).
+- Stage 2 buffers frames into a clip, resamples to a fixed length, and feeds it to
+  a GRU that outputs a sign. Segmentation is **motion-gated** (it watches hand
+  motion to find where a sign starts and ends) rather than a fixed sliding window,
+  which is what lets variable-length and back-to-back signs work.
+- A prediction is only committed if confidence and margin clear their thresholds;
+  an open-set "NONE" class lets unknown gestures be ignored instead of forced into
+  the nearest real sign.
 
-## Adding more gestures later
+## Project layout
 
-Just re-run `collect_data.py` (it appends to the same `data.csv`), then
-re-run `train_model.py` to retrain on the combined data. You don't need to
-touch `live_translate.py` — it automatically picks up new labels from
-`labels.json`.
+| File | Role |
+|------|------|
+| `hand_features.py` | **Single source of truth** for the feature vector, normalization, and clip helpers. Shared by collection, training, and inference. |
+| `live_sequence.py` | Source of truth for the Stage-2 runtime (segmentation + classification). `app_sequence.py` imports it. |
+| `app_sequence.py` / `app.py` | Web apps for Stage 2 / Stage 1. |
+| `train_sequence_model.py` / `train_model.py` | Trainers for each stage. |
+| `collect_sequences.py` / `collect_data.py` | Data collection for each stage. |
+| `llm.py`, `suggest.py` | Optional polishing and autocomplete. |
 
-## Limitations of this version (Stage 1)
+## Limitations
 
-- Recognizes **static poses only** — held still, not motions like swipes
-  or circles. A future "Stage 2" upgrade would record short video clips
-  instead of single snapshots and use a sequence model (LSTM) to support
-  motion-based signs.
-- Accuracy depends entirely on how much/good training data you collect —
-  this isn't a pretrained ASL model, it learns only the gestures you teach it.
-- Lighting and camera angle affect MediaPipe's hand detection reliability.
+- Accuracy depends on how much and how varied your training data is — this is not
+  a pretrained ASL model; it learns only the signs you teach it.
+- Lighting and camera angle affect MediaPipe's detection reliability.
+- The webcam frame is mirrored before processing; the datasets and augmentation
+  account for this.
+
+## License
+
+[MIT](LICENSE)
